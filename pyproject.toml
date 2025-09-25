@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ev-parlay"
+version = "0.1.0"
+description = "NFL Moneyline EV Calculator and Parlay Builder with diversification"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "EV Parlay Builder" }]
+license = { text = "MIT" }
+dependencies = [
+  "requests>=2.31.0",
+  "pydantic>=2.6.0",
+  "typer>=0.12.0",
+  "pandas>=2.2.0",
+  "numpy>=1.26.0",
+  "pulp>=2.7.0",
+  "rich>=13.7.0",
+  "PyYAML>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-cov>=4.1.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["ev_parlay"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["."]
