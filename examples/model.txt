@@ -1,20 +1,14 @@
-:Bills: BUF – 78.6% | Margin: 13.2
-:Packers: GB – 74.6% | Margin: 11.1
-:Rams: LA – 70.0% | Margin: 10.8
-:Falcons: ATL – 69.1% | Margin: 8.4
-:Commanders: WAS – 66.9% | Margin: 7.4
-:Chargers: LAC – 65.9% | Margin: 6.9
-:Bengals: CIN – 61.5% | Margin: 4.9
-:Ravens: BAL – 61.1% | Margin: 4.7
-:Seahawks: SEA – 60.4% | Margin: 4.5
-:Patriots: NE – 59.2% | Margin: 4.0
-:Eagles: PHI – 57.5% | Margin: 3.2
-:Buccaneers: TB – 57.5% | Margin: 3.2
-:Bears: CHI – 56.3% | Margin: 2.7
-:Giants: NYG – 54.6% | Margin: 2.0
-:Cardinals: ARI – 51.7% | Margin: 0.7
-
-
-:Seahawks: SEA - 50.3% | Margin 0.1%
-:Vikings: MIN - 60.1% | Margin 4.2%
-:Commanders: 6
+:Vikings: MIN – 60.1% | Margin: 4.2
+:Lions: DET – 80.5% | Margin: 14.3
+:Chargers: LAC – 77.1% | Margin: 12.4
+:Bills: BUF – 70.9% | Margin: 9.3
+:Packers: GB – 67.8% | Margin: 7.8
+:Broncos: DEN – 64.2% | Margin: 6.1
+:Jets: NYJ – 62.4% | Margin: 5.3
+:Jaguars: JAX – 61.8% | Margin: 5.1
+:Colts: IND – 61.5% | Margin: 4.9
+:Ravens: BAL – 60.9% | Margin: 4.7
+:Patriots: NE – 58.0% | Margin: 3.4
+:Bears: CHI – 55.0% | Margin: 2.1
+:Eagles: PHI – 51.2% | Margin: 0.5
+:Texans: HOU – 50.2% | Margin: 0.1
