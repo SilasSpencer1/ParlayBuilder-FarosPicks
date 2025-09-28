@@ -220,14 +220,16 @@ def build_parlays(
 def simulate(
 	parlays_csv: str = typer.Option("outputs/parlays.csv", "--parlays", help="Path to parlays.csv"),
 	trials: int = typer.Option(50000, "--trials", help="Monte-Carlo trials"),
+	out_image: Optional[str] = typer.Option(None, "--out-image", help="Save histogram PNG to this path"),
+	save_samples: Optional[str] = typer.Option(None, "--save-samples", help="Optional CSV of profit samples"),
 ):
 	import pandas as pd
+	from .simulate import simulate_slate, simulate_slate_samples, save_histogram
 
 	df = pd.read_csv(parlays_csv)
 	tickets = []
 	for _, row in df.iterrows():
 		teams = str(row["legs"]).split(",")
-		# For simulation, we only need P and Dec. Since we don't have legs, we approximate with saved columns.
 		tickets.append(
 			ParlayTicket(
 				size=int(row["size"]),
@@ -242,6 +244,18 @@ def simulate(
 		)
 	stats = simulate_slate(tickets, trials=trials)
 	print(json.dumps(stats, indent=2))
+	if out_image or save_samples:
+		profits = simulate_slate_samples(tickets, trials=trials)
+		if out_image:
+			path = save_histogram(profits, out_image)
+			if path:
+				print(f"Saved histogram to {path}")
+			else:
+				print("matplotlib not available; cannot save histogram")
+		if save_samples:
+			import pandas as pd
+			pd.DataFrame({"profit": profits}).to_csv(save_samples, index=False)
+			print(f"Saved samples to {save_samples}")
 
 
 def main():
