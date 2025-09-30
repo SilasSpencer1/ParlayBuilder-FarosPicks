@@ -24,8 +24,13 @@ def _parlay_ev(legs: List[TeamSelection], rho: float) -> Tuple[float, float, flo
 
 
 def greedy_beam_build(legs: List[TeamSelection], config: AppConfig) -> Dict[int, List[List[TeamSelection]]]:
-	# Start with +EV singles sorted by edge
-	candidates = [l for l in legs if (l.expected_value or 0.0) > 0.0]
+	# Start with candidates: +EV singles OR legs meeting min_edge threshold
+	candidates: List[TeamSelection] = []
+	for l in legs:
+		edge = l.edge or -1.0
+		if (l.expected_value or 0.0) > 0.0 or edge >= (config.min_edge or 0.0):
+			candidates.append(l)
+	# Rank by edge
 	candidates.sort(key=lambda x: (x.edge or -1.0), reverse=True)
 	if config.candidate_pool_size > 0:
 		candidates = candidates[: config.candidate_pool_size]
@@ -51,7 +56,7 @@ def greedy_beam_build(legs: List[TeamSelection], config: AppConfig) -> Dict[int,
 						continue  # one pick per game
 					combo2 = combo + [leg]
 					P, D, EV = _parlay_ev(combo2, config.correlation_rho)
-					if EV <= 0:
+					if EV <= config.min_parlay_ev:
 						continue
 					new_beam.append((combo2, EV))
 			# keep top beam_width
