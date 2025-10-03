@@ -43,14 +43,14 @@ def api_example_model():
 	try:
 		text = p.read_text(encoding="utf-8")
 	except Exception:
-        # Fallback sample if examples/model.txt was not packaged
-        text = (
-            ":Vikings: MIN – 60.1% | Margin: 4.2\n"
-            ":Chargers: LAC – 55.0% | Margin: 2.1\n"
-            ":Jets: NYJ – 62.4% | Margin: 5.0\n"
-            ":Jaguars: JAX – 61.8%\n"
-            ":Colts: IND – 61.5%\n"
-        )
+		# Fallback sample if examples/model.txt was not packaged
+		text = (
+			":Vikings: MIN – 60.1% | Margin: 4.2\n"
+			":Chargers: LAC – 55.0% | Margin: 2.1\n"
+			":Jets: NYJ – 62.4% | Margin: 5.0\n"
+			":Jaguars: JAX – 61.8%\n"
+			":Colts: IND – 61.5%\n"
+		)
 	return {"text": text}
 
 
