@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EV Parlay Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.10);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --text: #f6f7fb;
+      --muted: #cfd3df;
+      --accent: #7aa2ff;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+    body {
+      font-family: 'Inconsolata', monospace;
+      margin: 20px;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 10% 10%, #0f172a, #0b1220 60%, #0a0f1a 100%);
+    }
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      box-shadow: 0 8px 30px var(--shadow);
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+    .row.glass { padding: 16px; margin-bottom: 12px; }
+    .col { display: flex; flex-direction: column; gap: 6px; }
+    label { font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    input, select, textarea {
+      padding: 10px 12px;
+      margin: 0;
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(122,162,255,0.18); }
+    button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: linear-gradient(180deg, rgba(122,162,255,0.2), rgba(122,162,255,0.1));
+      color: var(--text);
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.1); }
+    table { border-collapse: collapse; margin-top: 10px; width: 100%; }
+    table.glass { padding: 10px; }
+    th, td { border-bottom: 1px solid rgba(255,255,255,0.12); padding: 8px; text-align: left; }
+    th { color: var(--muted); font-weight: 700; }
+    #plot { max-width: 100%; margin-top: 12px; display: block; border-radius: 10px; }
+    .mono { font-family: 'Inconsolata', monospace; }
+    #simBox { margin-top: 24px; padding: 16px; }
+    h2 { margin-top: 6px; margin-bottom: 14px; font-weight: 700; letter-spacing: 0.5px; }
+    h3 { margin-top: 18px; margin-bottom: 8px; color: var(--muted); }
+    .info { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: var(--text); background: rgba(255,255,255,0.15); font-size: 12px; cursor: help; position: relative; }
+    .info::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 12px; line-height: 1.2; width: max-content; max-width: 260px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+    .info:hover::after { opacity: 1; }
+  </style>
+</head>
+<body>
+  <h2>EV Parlay Builder</h2>
+  <div class="row glass">
+    <div class="col" style="flex:1 1 520px;min-width:520px;">
+      <label>Model text (one per line: ":Team: ABBR – 60.1% | Margin: 4.2") <span class="info" data-tip="Paste your model’s per-team win % and optional margin. One team per line. We'll map to the current slate and ignore teams not playing.">i</span></label>
+      <textarea id="model_text" class="mono" rows="6" style="width:100%;" placeholder=":Vikings: MIN – 60.1% | Margin: 4.2\n:Chargers: LAC – 55.0%\n:Jets: NYJ – 62.4%"></textarea>
+    </div>
+    <div class="col">
+      <label>Week <span class="info" data-tip="Controls the date window and the week-specific odds cache we load/save (e.g., .odds_cache_week5_all.json).">i</span></label>
+      <select id="week">
+        <option value="5" selected>Week 5</option>
+        <option value="4">Week 4</option>
+        <option value="3">Week 3</option>
+      </select>
+    </div>
+    <div class="col">
+      <label>Books</label>
+      <input id="books" value="draftkings,fanduel,betmgm,caesars,bet365,pointsbetus" />
+    </div>
+    <div class="col">
+      <label>Parlay sizes</label>
+      <input id="sizes" value="2,3,4" />
+    </div>
+    <div class="col">
+      <label>Num parlays</label>
+      <input id="num" type="number" value="8" />
+    </div>
+    <div class="col">
+      <label>Budget</label>
+      <input id="budget" type="number" value="100" />
+    </div>
+  </div>
+  <div class="row glass">
+    <div class="col"><label>Min edge <span class="info" data-tip="Minimum single-leg edge required to include a team. Edge = model % minus market implied %.">i</span></label><input id="min_edge" type="number" step="0.01" value="0.0" /></div>
+    <div class="col"><label>Min parlay EV <span class="info" data-tip="Minimum expected value for a parlay ticket. Set slightly negative to broaden candidates.">i</span></label><input id="min_ev" type="number" step="0.01" value="0.0" /></div>
+    <div class="col"><label>Exposure cap <span class="info" data-tip="Max share of tickets any single team can appear on (0.40 = 40%).">i</span></label><input id="cap" type="number" step="0.05" value="0.4" /></div>
+    <div class="col"><label>Rho <span class="info" data-tip="Correlation factor between legs. 0 assumes independence; >0 reduces the effective parlay hit probability.">i</span></label><input id="rho" type="number" step="0.01" value="0.0" /></div>
+    <div class="col"><button id="run">Build</button></div>
+    <div class="col"><button id="sim">Simulate</button></div>
+  </div>
+
+  <h3>Parlays</h3>
+  <table id="parlays" class="glass"><thead><tr><th>Size</th><th>Teams</th><th>Dec <span class="info" data-tip="Combined decimal odds for the ticket (payout per $1 stake).">i</span></th><th>Prob % <span class="info" data-tip="Model-estimated probability the entire parlay hits (after correlation).">i</span></th><th>EV $ <span class="info" data-tip="Expected dollar value per ticket at the shown stake.">i</span></th><th>Stake <span class="info" data-tip="Suggested stake per ticket based on your budget and method.">i</span></th></tr></thead><tbody></tbody></table>
+
+  <h3>Singles (+EV)</h3>
+  <table id="singles" class="glass"><thead><tr><th>Team</th><th>Model %</th><th>Market %</th><th>Edge %</th><th>Dec</th><th>EV $</th></tr></thead><tbody></tbody></table>
+
+  <div id="simBox" class="glass">
+    <h3>Simulation</h3>
+    <div id="simStats" class="mono"></div>
+    <img id="plot" alt="Simulation histogram will appear here" />
+  </div>
+
+  <script>
+    let lastParlays = [];
+
+    function asList(v){ return v.split(',').map(s=>s.trim()).filter(Boolean); }
+
+    async function build(){
+      const body = {
+        model_text: document.getElementById('model_text').value,
+        // odds_file is now handled on the backend per week
+        sportsbooks: asList(document.getElementById('books').value),
+        parlay_sizes: asList(document.getElementById('sizes').value).map(Number),
+        desired_num_tickets: Number(document.getElementById('num').value),
+        budget: Number(document.getElementById('budget').value),
+        min_edge: Number(document.getElementById('min_edge').value),
+        min_parlay_ev: Number(document.getElementById('min_ev').value),
+        team_exposure_cap: Number(document.getElementById('cap').value),
+        correlation_rho: Number(document.getElementById('rho').value),
+      };
+      // Set date window from week selector (NFL 2025 season example). Adjust as needed.
+      const week = document.getElementById('week').value;
+      body.week = Number(week);
+      const weekDates = {
+        '3': {from: '2025-09-17T00:00:00Z', to: '2025-09-24T07:00:00Z'},
+        '4': {from: '2025-09-24T00:00:00Z', to: '2025-10-01T07:00:00Z'},
+        '5': {from: '2025-10-01T00:00:00Z', to: '2025-10-08T07:00:00Z'},
+      };
+      if(weekDates[week]){
+        body.from_iso = weekDates[week].from;
+        body.to_iso = weekDates[week].to;
+      }
+      const res = await fetch('/api/build', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      if(!res.ok){ const err = await res.json(); alert('Build error: '+JSON.stringify(err)); return; }
+      const data = await res.json();
+      lastParlays = data.parlays;
+      renderParlays(data.parlays);
+      renderSingles(data.singles);
+      // Clear previous plot
+      document.getElementById('plot').src='';
+      document.getElementById('simStats').textContent='';
+    }
+
+    async function simulate(){
+      if(!lastParlays.length){ alert('Run Build first'); return; }
+      const imgName = 'sim_'+Date.now()+'.png';
+      console.log('[DEBUG] Sending simulate request with parlays:', lastParlays);
+      const res = await fetch('/api/simulate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({parlays:lastParlays, trials:50000, out_image:imgName})});
+      if(!res.ok){ const err = await res.text(); alert('Sim error: '+err); return; }
+      const data = await res.json();
+      console.log('[DEBUG] Simulate response:', data);
+      if(data.stats){
+        const s = data.stats;
+        document.getElementById('simStats').textContent = `mean=${s.mean.toFixed(2)}  median=${s.median.toFixed(2)}  p05=${s.p05.toFixed(2)}  p95=${s.p95.toFixed(2)}`;
+      }
+      if(data.image){ 
+        console.log('[DEBUG] Setting image src:', data.image);
+        document.getElementById('plot').src = data.image+'?t='+Date.now(); 
+        document.getElementById('plot').scrollIntoView({behavior:'smooth'}); 
+      }
+      else { 
+        console.warn('[DEBUG] No image in response');
+        alert('Simulated: '+JSON.stringify(data.stats)); 
+      }
+    }
+
+    function renderParlays(parlays){
+      const tb = document.querySelector('#parlays tbody'); tb.innerHTML='';
+      for(const p of parlays){
+        const tr = document.createElement('tr');
+        const teams = (p.legs||[]).map(l=>l.team_abbr).join(',');
+        tr.innerHTML = `<td>${p.size}</td><td>${teams}</td><td>${p.combined_decimal.toFixed(2)}</td><td>${(p.combined_probability*100).toFixed(1)}</td><td>${p.expected_value.toFixed(2)}</td><td>${p.flat_stake.toFixed(2)}</td>`;
+        tb.appendChild(tr);
+      }
+    }
+    function renderSingles(singles){
+      const tb = document.querySelector('#singles tbody'); tb.innerHTML='';
+      for(const s of singles){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${s.team}</td><td>${(s.model_p*100).toFixed(1)}</td><td>${(s.implied_p*100).toFixed(1)}</td><td>${(s.edge*100).toFixed(1)}</td><td>${(s.dec||0).toFixed(2)}</td><td>${(s.ev||0).toFixed(2)}</td>`;
+        tb.appendChild(tr);
+      }
+    }
+
+    async function autofillModel(){
+      try{
+        const res = await fetch('/api/example_model');
+        if(res.ok){ const d = await res.json(); if(d.text){ document.getElementById('model_text').value = d.text; } }
+      }catch(e){ console.warn('autofill failed', e); }
+    }
+
+    document.getElementById('run').addEventListener('click', build);
+    document.getElementById('sim').addEventListener('click', simulate);
+    // Auto-load example on page load
+    window.addEventListener('load', autofillModel);
+  </script>
+</body>
+</html>

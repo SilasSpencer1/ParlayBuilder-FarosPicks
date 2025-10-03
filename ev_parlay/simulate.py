@@ -38,6 +38,8 @@ def simulate_slate_samples(tickets: List[ParlayTicket], trials: int = 50000, ran
 
 def save_histogram(profits: np.ndarray, path: str, bins: int = 60) -> Optional[str]:
 	try:
+		import matplotlib
+		matplotlib.use('Agg')  # Use non-interactive backend for web server
 		import matplotlib.pyplot as plt  # type: ignore
 	except Exception:
 		return None

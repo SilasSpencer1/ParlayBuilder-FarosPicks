@@ -1,0 +1,8 @@
+[build]
+builder = "Dockerfile"
+
+[deploy]
+startCommand = "uvicorn api.main:app --host 0.0.0.0 --port 8000"
+
+[env]
+ODDS_API_KEY = ""

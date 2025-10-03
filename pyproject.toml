@@ -19,6 +19,8 @@ dependencies = [
   "pulp>=2.7.0",
   "rich>=13.7.0",
   "PyYAML>=6.0.1",
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
 ]
 
 [project.optional-dependencies]
@@ -28,7 +30,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["ev_parlay"]
+packages = ["ev_parlay", "api", "web"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
